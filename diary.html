@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Postcards from my days</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#3c4f2e;
+    --forest-dark:#2b3a20;
+    --rose:#cf8798;
+    --rose-dark:#b06779;
+    --cream:#f6e0c2;
+    --cream-dark:#eccfa2;
+    --olive:#b8be7c;
+    --olive-dark:#9ba362;
+    --paper:#fbf5ea;
+    --ink:#2c2418;
+    --ink-soft:#786c58;
+    --line:#e4d6bd;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;color:var(--ink);font-family:'Karla',sans-serif;min-height:100vh;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 0%, rgba(184,190,124,.35), transparent 60%),
+      radial-gradient(ellipse 55% 45% at 100% 20%, rgba(60,79,46,.4), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(60,79,46,.3), transparent 65%),
+      var(--forest-dark);
+    background-attachment:fixed;
+  }
+  .app{max-width:1180px;margin:0 auto;padding:34px 26px 80px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:30px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .logo-lily{width:44px;height:44px;flex:none;}
+  h1{font-family:'Fraunces',serif;font-weight:500;font-style:italic;font-size:1.9rem;margin:0;color:var(--paper);line-height:1;}
+  .tagline{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#cdd3b8;margin-top:6px;}
+
+  .toolbar{display:flex;gap:10px;align-items:center;}
+  .toolbar input[type="text"]{
+    font-family:'Karla',sans-serif;font-size:.85rem;padding:10px 15px;border-radius:8px;
+    border:1px solid transparent;background:rgba(251,245,234,.12);color:var(--paper);outline:none;width:180px;
+  }
+  .toolbar input[type="text"]::placeholder{color:#cdd3b8;}
+  .toolbar input[type="text"]:focus{background:rgba(251,245,234,.2);}
+  .btn{
+    font-family:'Karla',sans-serif;font-weight:600;font-size:.82rem;border:none;cursor:pointer;
+    padding:10px 18px;border-radius:8px;background:var(--rose);color:#3a1c24;letter-spacing:.02em;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .btn:hover{background:var(--rose-dark);color:var(--paper);}
+  .btn.ghost{background:transparent;color:#e8c9cf;border:1px solid #e8c9cf;}
+  .btn.ghost:hover{background:rgba(232,201,207,.12);color:var(--paper);}
+  .btn.small{padding:8px 14px;font-size:.76rem;}
+  .btn.text{background:none;color:#cdd3b8;padding:6px 4px;font-weight:600;}
+  .btn.text:hover{color:var(--paper);}
+
+  /* ---------- GRID VIEW: swatch-card postcards ---------- */
+  #gridView .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    gap:26px;padding:4px 2px 40px;
+  }
+  .postcard{cursor:pointer;}
+  .swatch{
+    border-radius:14px;padding:18px 18px 16px;height:230px;position:relative;overflow:hidden;
+    box-shadow:0 10px 24px rgba(20,20,10,.28);
+    transition:transform .2s ease, box-shadow .2s ease;
+    display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .postcard:hover .swatch{transform:translateY(-5px);box-shadow:0 16px 30px rgba(20,20,10,.34);}
+  .swatch .sprig{position:absolute;right:-10px;bottom:-6px;width:65%;height:75%;opacity:.55;}
+  .swatch-label{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;position:relative;z-index:1;}
+  .swatch-bottom{position:relative;z-index:1;}
+  .swatch-title{font-family:'Fraunces',serif;font-weight:500;font-size:1.15rem;line-height:1.2;margin-bottom:5px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .swatch-code{font-size:.68rem;letter-spacing:.04em;font-weight:600;opacity:.85;}
+
+  .new-card .swatch{
+    background:transparent;border:1.5px dashed rgba(251,245,234,.4);box-shadow:none;
+    align-items:center;justify-content:center;color:#cdd3b8;
+  }
+  .new-card:hover .swatch{border-color:var(--paper);transform:translateY(-5px);}
+  .new-card .plus-wrap{text-align:center;}
+  .new-card .plus{font-family:'Fraunces',serif;font-weight:500;font-size:2.1rem;line-height:1;color:var(--paper);}
+  .new-card .plus-label{font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;}
+
+  .empty-state{text-align:center;padding:50px 20px;color:#cdd3b8;grid-column:1/-1;}
+
+  /* ---------- DETAIL VIEW ---------- */
+  #detailView{display:none;}
+  .back-btn{margin:0 0 16px;}
+  .back-card{
+    background:var(--paper);border-radius:16px;box-shadow:0 20px 40px rgba(20,20,10,.35);
+    display:grid;grid-template-columns:1fr 250px;min-height:470px;overflow:hidden;
+  }
+  @media (max-width:720px){.back-card{grid-template-columns:1fr;}}
+
+  .back-left{padding:34px 32px 26px;position:relative;}
+  .pc-title-input{
+    width:100%;border:none;background:transparent;outline:none;font-family:'Fraunces',serif;
+    font-weight:500;font-size:1.6rem;color:var(--forest);margin-bottom:16px;
+  }
+  .pc-title-input::placeholder{color:#c9bfa8;}
+  #entryText{
+    width:100%;min-height:350px;border:none;background:transparent;resize:vertical;outline:none;
+    font-family:'Karla',sans-serif;font-size:1.02rem;line-height:1.9rem;color:var(--ink);
+    background-image:repeating-linear-gradient(to bottom, transparent, transparent 1.85rem, var(--line) 1.9rem);
+    padding-top:2px;
+  }
+  #entryText::placeholder{color:#c4b49e;font-style:italic;}
+  .word-count{position:absolute;bottom:10px;right:16px;font-size:.7rem;color:var(--ink-soft);}
+
+  .back-right{padding:28px 24px;display:flex;flex-direction:column;gap:26px;background:#f2e6d0;
+    border-left:1px solid var(--line);}
+  @media (max-width:720px){.back-right{border-left:none;border-top:1px solid var(--line);}}
+
+  .section-label{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    color:var(--ink-soft);margin-bottom:10px;}
+
+  .mood-swatches{display:flex;flex-direction:column;gap:8px;}
+  .mood-swatch{
+    display:flex;align-items:center;gap:10px;border:none;background:none;cursor:pointer;padding:6px 8px;
+    border-radius:8px;text-align:left;transition:background .15s ease;
+  }
+  .mood-swatch:hover{background:rgba(60,79,46,.06);}
+  .mood-swatch.selected{background:rgba(60,79,46,.1);}
+  .mood-swatch .chip{width:26px;height:26px;border-radius:6px;flex:none;border:1.5px solid rgba(0,0,0,.08);}
+  .mood-swatch.selected .chip{box-shadow:0 0 0 2px var(--paper), 0 0 0 3.5px var(--forest);}
+  .mood-swatch .info{line-height:1.25;}
+  .mood-swatch .mname{font-size:.82rem;font-weight:600;color:var(--ink);}
+  .mood-swatch .mcode{font-size:.66rem;color:var(--ink-soft);letter-spacing:.03em;}
+
+  .date-field{display:flex;flex-direction:column;gap:4px;}
+  .date-input{
+    font-family:'Karla',sans-serif;font-weight:600;font-size:.86rem;border:none;
+    background:transparent;color:var(--ink);outline:none;cursor:pointer;padding:0;
+  }
+
+  .back-actions{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:8px;}
+  .save-status{font-size:.7rem;color:var(--forest);font-weight:700;opacity:0;transition:opacity .3s ease;display:block;margin-top:6px;text-align:right;}
+  .save-status.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand-wrap">
+      <div class="brand">
+        <svg class="logo-lily" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g id="lilyLogo"></g></svg>
+        <h1>Daily Postcards</h1>
+      </div>
+      <div class="tagline">a small bouquet of your days</div>
+    </div>
+    <div class="toolbar" id="gridToolbar">
+      <input type="text" id="searchBox" placeholder="Search postcards…">
+      <button class="btn" id="newEntryBtn">+ Write one</button>
+    </div>
+  </header>
+
+  <!-- GRID VIEW -->
+  <div id="gridView">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- DETAIL VIEW -->
+  <div id="detailView">
+    <button class="btn text back-btn" id="backBtn">&larr; back to postcards</button>
+    <div class="back-card">
+      <div class="back-left">
+        <input type="text" class="pc-title-input" id="titleInput" placeholder="Title this page…">
+        <textarea id="entryText" placeholder="Write about your day."></textarea>
+        <span class="word-count" id="wordCount">0 words</span>
+      </div>
+      <div class="back-right">
+        <div>
+          <div class="section-label">Mood</div>
+          <div class="mood-swatches" id="moodSwatches"></div>
+        </div>
+        <div class="date-field">
+          <div class="section-label" style="margin-bottom:2px;">Date</div>
+          <input type="date" class="date-input" id="dateInput">
+        </div>
+        <div class="back-actions">
+          <button class="btn ghost small" id="deleteBtn" style="display:none;">Delete</button>
+          <div style="text-align:right;">
+            <button class="btn small" id="saveBtn">Save postcard</button>
+            <span class="save-status" id="saveStatus">✓ Saved</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- painted stargazer-lily logo mark ---------- */
+function lilyLogoSVG(){
+  const petalLight = '#e8b7c2';
+  const petalMid = '#cf8798';
+  const petalDeep = '#b06779';
+  const stem = '#6b8055';
+  const anther = '#c97b4a';
+  let petals = '';
+  for(let i=0;i<6;i++){
+    const ang = i*60;
+    petals += `<g transform="rotate(${ang} 50 54)">
+      <path d="M50,54 C41,42 37,20 50,6 C63,20 59,42 50,54 Z" fill="${i%2? petalMid : petalLight}"/>
+      <path d="M50,54 C46,44 45,26 50,14" stroke="${petalDeep}" stroke-width="0.8" fill="none" opacity=".6"/>
+      <ellipse cx="47" cy="34" rx="1.1" ry="1.6" fill="${petalDeep}" opacity=".55"/>
+      <ellipse cx="52" cy="40" rx="1" ry="1.4" fill="${petalDeep}" opacity=".5"/>
+    </g>`;
+  }
+  let stamens = '';
+  for(let i=0;i<5;i++){
+    const ang = -60 + i*30;
+    stamens += `<g transform="rotate(${ang} 50 54)">
+      <path d="M50,54 C50,44 50,36 50,30" stroke="${stem}" stroke-width="1.1" fill="none"/>
+      <ellipse cx="50" cy="28" rx="2.4" ry="1.4" fill="${anther}" transform="rotate(${ang} 50 28)"/>
+    </g>`;
+  }
+  return `${petals}${stamens}<circle cx="50" cy="54" r="2" fill="${stem}"/>`;
+}
+document.getElementById('lilyLogo').innerHTML = lilyLogoSVG();
+
+/* ---------- mood palette: the four Pantone swatches ---------- */
+const MOODS = [
+  {id:'happy',       label:'Happy',       bg:'#cf8798', ink:'#3a1c24', sprig:'#b06779'},
+  {id:'calm',        label:'Calm',        bg:'#b8be7c', ink:'#3c4f2e', sprig:'#9ba362'},
+  {id:'neutral',     label:'Neutral',     bg:'#f6e0c2', ink:'#3c4f2e', sprig:'#e0bd8e'},
+  {id:'sad',         label:'Sad',         bg:'#3c4f2e', ink:'#f6e0c2', sprig:'#546b40'},
+  {id:'overwhelmed', label:'Overwhelmed', bg:'#6e3b42', ink:'#f6e0c2', sprig:'#8a565e'},
+];
+function moodOf(id){ return MOODS.find(m=>m.id===id) || null; }
+
+/* subtle single-line botanical sprig, tone-on-tone per swatch */
+function sprigSVG(m){
+  return `<svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M70 118 C68 90 64 60 50 30" stroke="${m.sprig}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M58 90 C66 84 74 82 82 84" stroke="${m.sprig}" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M52 70 C42 64 34 63 26 66" stroke="${m.sprig}" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M56 48 C64 42 72 40 80 42" stroke="${m.sprig}" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M50 30 C46 22 40 16 32 12" stroke="${m.sprig}" stroke-width="1.6" stroke-linecap="round"/>
+    <ellipse cx="82" cy="84" rx="9" ry="5" fill="none" stroke="${m.sprig}" stroke-width="1.5" transform="rotate(-18 82 84)"/>
+    <ellipse cx="26" cy="66" rx="9" ry="5" fill="none" stroke="${m.sprig}" stroke-width="1.5" transform="rotate(18 26 66)"/>
+    <ellipse cx="80" cy="42" rx="8" ry="4.5" fill="none" stroke="${m.sprig}" stroke-width="1.5" transform="rotate(-22 80 42)"/>
+    <ellipse cx="32" cy="12" rx="7" ry="4" fill="none" stroke="${m.sprig}" stroke-width="1.5" transform="rotate(24 32 12)"/>
+  </svg>`;
+}
+
+/* ---------- state ---------- */
+let entries = [];
+let currentId = null;
+let selectedMood = null;
+
+const el = id => document.getElementById(id);
+const gridEl = el('grid');
+const gridView = el('gridView');
+const detailView = el('detailView');
+const gridToolbar = el('gridToolbar');
+const searchBox = el('searchBox');
+const titleInput = el('titleInput');
+const entryText = el('entryText');
+const dateInput = el('dateInput');
+const wordCount = el('wordCount');
+const saveStatus = el('saveStatus');
+const deleteBtn = el('deleteBtn');
+const moodSwatches = el('moodSwatches');
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDateShort(d){
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString(undefined,{month:'short', day:'numeric', year:'numeric'});
+}
+
+/* ---------- grid rendering ---------- */
+function renderGrid(filter=''){
+  const f = filter.trim().toLowerCase();
+  const sorted = [...entries].sort((a,b)=> b.date.localeCompare(a.date));
+  const filtered = f ? sorted.filter(e =>
+    (e.title||'').toLowerCase().includes(f) || (e.text||'').toLowerCase().includes(f)
+  ) : sorted;
+
+  let html = `
+    <div class="postcard new-card" id="newCard">
+      <div class="swatch">
+        <div class="plus-wrap">
+          <div class="plus">+</div>
+          <div class="plus-label">New postcard</div>
+        </div>
+      </div>
+    </div>`;
+
+  if(filtered.length===0 && f){
+    html += `<div class="empty-state">No postcards match "${escapeHtml(filter)}".</div>`;
+  } else {
+    html += filtered.map(e=>{
+      const m = moodOf(e.mood) || MOODS[2];
+      return `
+      <div class="postcard" data-id="${e.id}">
+        <div class="swatch" style="background:${m.bg};color:${m.ink};">
+          <div class="sprig">${sprigSVG(m)}</div>
+          <div class="swatch-label">Entry — ${fmtDateShort(e.date)}</div>
+          <div class="swatch-bottom">
+            <div class="swatch-title">${e.title ? escapeHtml(e.title) : 'Untitled page'}</div>
+            <div class="swatch-code">${m.label.toUpperCase()}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  gridEl.innerHTML = html;
+  el('newCard').addEventListener('click', ()=> openEntry(null));
+  gridEl.querySelectorAll('.postcard[data-id]').forEach(card=>{
+    card.addEventListener('click', ()=> openEntry(card.dataset.id));
+  });
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- mood picker (detail view) ---------- */
+function renderMoodSwatches(){
+  moodSwatches.innerHTML = MOODS.map(m=>`
+    <button class="mood-swatch ${selectedMood===m.id?'selected':''}" data-mood="${m.id}">
+      <span class="chip" style="background:${m.bg};"></span>
+      <span class="info">
+        <span class="mname">${m.label}</span>
+      </span>
+    </button>
+  `).join('');
+  moodSwatches.querySelectorAll('.mood-swatch').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      selectedMood = btn.dataset.mood;
+      renderMoodSwatches();
+    });
+  });
+}
+
+/* ---------- open / new / save / delete ---------- */
+function openEntry(id){
+  if(id){
+    const e = entries.find(x=>x.id===id);
+    if(!e) return;
+    currentId = e.id;
+    titleInput.value = e.title || '';
+    entryText.value = e.text || '';
+    dateInput.value = e.date;
+    selectedMood = e.mood || null;
+    deleteBtn.style.display = 'inline-block';
+  } else {
+    currentId = null;
+    titleInput.value = '';
+    entryText.value = '';
+    dateInput.value = todayStr();
+    selectedMood = null;
+    deleteBtn.style.display = 'none';
+  }
+  renderMoodSwatches();
+  updateWordCount();
+  gridView.style.display = 'none';
+  gridToolbar.style.display = 'none';
+  detailView.style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function closeDetail(){
+  gridView.style.display = 'block';
+  gridToolbar.style.display = 'flex';
+  detailView.style.display = 'none';
+  renderGrid(searchBox.value);
+}
+
+function updateWordCount(){
+  const words = entryText.value.trim().split(/\s+/).filter(Boolean).length;
+  wordCount.textContent = words + (words===1 ? ' word' : ' words');
+}
+
+async function saveEntry(){
+  const id = currentId || ('entry_' + Date.now());
+  const entry = {
+    id,
+    date: dateInput.value || todayStr(),
+    title: titleInput.value,
+    text: entryText.value,
+    mood: selectedMood,
+    updated: new Date().toISOString()
+  };
+  const idx = entries.findIndex(x=>x.id===id);
+  if(idx>=0) entries[idx] = entry; else entries.push(entry);
+  currentId = id;
+
+  try{
+    await window.storage.set(id, JSON.stringify(entry));
+    saveStatus.classList.add('show');
+    setTimeout(()=> saveStatus.classList.remove('show'), 1800);
+  }catch(err){
+    console.error('Save failed', err);
+    saveStatus.textContent = '⚠ could not save';
+    saveStatus.classList.add('show');
+  }
+  deleteBtn.style.display = 'inline-block';
+}
+
+async function deleteEntry(){
+  if(!currentId) return;
+  if(!confirm('Delete this postcard? This cannot be undone.')) return;
+  try{ await window.storage.delete(currentId); }catch(err){ console.error('Delete failed', err); }
+  entries = entries.filter(x=>x.id!==currentId);
+  closeDetail();
+}
+
+async function loadAllEntries(){
+  gridEl.innerHTML = `<div class="empty-state">Gathering your postcards…</div>`;
+  try{
+    const listResult = await window.storage.list('entry_');
+    const keys = (listResult && listResult.keys) || [];
+    const loaded = [];
+    for(const k of keys){
+      try{
+        const res = await window.storage.get(k);
+        if(res && res.value) loaded.push(JSON.parse(res.value));
+      }catch(e){ /* skip */ }
+    }
+    entries = loaded;
+  }catch(err){
+    console.error('Could not list entries', err);
+    entries = [];
+  }
+  renderGrid();
+}
+
+/* ---------- events ---------- */
+el('newEntryBtn').addEventListener('click', ()=> openEntry(null));
+el('backBtn').addEventListener('click', closeDetail);
+el('saveBtn').addEventListener('click', saveEntry);
+el('deleteBtn').addEventListener('click', deleteEntry);
+entryText.addEventListener('input', updateWordCount);
+searchBox.addEventListener('input', ()=> renderGrid(searchBox.value));
+
+loadAllEntries();
+</script>
+</body>
+</html>
