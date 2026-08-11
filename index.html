@@ -142,10 +142,65 @@
   .back-actions{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:8px;}
   .save-status{font-size:.7rem;color:var(--forest);font-weight:700;opacity:0;transition:opacity .3s ease;display:block;margin-top:6px;text-align:right;}
   .save-status.show{opacity:1;}
+
+  /* ---------- connection banner ---------- */
+  .conn-banner{
+    max-width:1180px;margin:0 auto 16px;padding:10px 16px;border-radius:8px;
+    font-size:.8rem;font-weight:600;display:none;
+  }
+  .conn-banner.show{display:block;}
+  .conn-banner.error{background:rgba(176,103,121,.25);color:#ffe3e8;border:1px solid rgba(176,103,121,.6);}
+  .conn-banner.info{background:rgba(184,190,124,.2);color:#eef1de;border:1px solid rgba(184,190,124,.5);}
+
+  /* ---------- login screen ---------- */
+  #loginScreen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .login-card{
+    background:var(--paper);border-radius:16px;box-shadow:0 20px 40px rgba(20,20,10,.35);
+    padding:40px 36px;width:100%;max-width:360px;
+  }
+  .login-card h2{font-family:'Fraunces',serif;font-weight:500;font-style:italic;color:var(--forest);
+    margin:0 0 6px;font-size:1.5rem;}
+  .login-card p{font-size:.82rem;color:var(--ink-soft);margin:0 0 24px;}
+  .login-field{margin-bottom:16px;}
+  .login-field label{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+    font-weight:700;color:var(--ink-soft);margin-bottom:6px;}
+  .login-field input{
+    width:100%;padding:11px 13px;border-radius:8px;border:1.5px solid var(--line);
+    font-family:'Karla',sans-serif;font-size:.92rem;color:var(--ink);outline:none;background:#fff;
+  }
+  .login-field input:focus{border-color:var(--forest);}
+  .login-error{font-size:.78rem;color:var(--rose-dark);margin:0 0 14px;min-height:1em;}
+  .login-btn{width:100%;padding:12px;font-size:.88rem;}
+  #appWrap{display:none;}
+  .signout-btn{background:none;border:none;color:#cdd3b8;font-size:.72rem;cursor:pointer;
+    text-decoration:underline;padding:0;}
+  .signout-btn:hover{color:var(--paper);}
 </style>
 </head>
 <body>
-<div class="app">
+
+<div id="loginScreen">
+  <div class="login-card">
+    <h2>Daily Postcards</h2>
+    <p>Sign in to open your journal.</p>
+    <div class="login-field">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" autocomplete="current-password">
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="btn login-btn" id="loginBtn">Sign in</button>
+  </div>
+</div>
+
+<div class="app" id="appWrap">
+
+  <div class="conn-banner" id="connBanner"></div>
 
   <header>
     <div class="brand-wrap">
@@ -158,6 +213,7 @@
     <div class="toolbar" id="gridToolbar">
       <input type="text" id="searchBox" placeholder="Search postcards…">
       <button class="btn" id="newEntryBtn">+ Write one</button>
+      <button class="signout-btn" id="signOutBtn">Sign out</button>
     </div>
   </header>
 
@@ -197,7 +253,97 @@
 
 </div>
 
-<script>
+<script type="module">
+/* =========================================================
+   FIREBASE SETUP — this replaces the old window.storage API
+   so entries sync across every device, not just one browser.
+   ========================================================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, getDocs, deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAlQmh4z0IoCDuGh7-_ljPmkvL1PJanJu0",
+  authDomain: "daily-postcard-a5908.firebaseapp.com",
+  projectId: "daily-postcard-a5908",
+  storageBucket: "daily-postcard-a5908.firebasestorage.app",
+  messagingSenderId: "456546507268",
+  appId: "1:456546507268:web:54800d8c73153e7030f351"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+const entriesCol = collection(db, "entries");
+
+/* ---------- login gate ---------- */
+const loginScreen = document.getElementById('loginScreen');
+const appWrap = document.getElementById('appWrap');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const loginError = document.getElementById('loginError');
+const loginBtn = document.getElementById('loginBtn');
+const signOutBtn = document.getElementById('signOutBtn');
+
+async function doLogin(){
+  loginError.textContent = '';
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Signing in…';
+  try{
+    await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+  }catch(err){
+    console.error(err);
+    loginError.textContent = 'Wrong email or password. Try again.';
+  }
+  loginBtn.disabled = false;
+  loginBtn.textContent = 'Sign in';
+}
+loginBtn.addEventListener('click', doLogin);
+loginPassword.addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+signOutBtn.addEventListener('click', ()=> signOut(auth));
+
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    loginScreen.style.display = 'none';
+    appWrap.style.display = 'block';
+    loginEmail.value = '';
+    loginPassword.value = '';
+    loadAllEntries();
+  } else {
+    loginScreen.style.display = 'flex';
+    appWrap.style.display = 'none';
+  }
+});
+
+function showBanner(msg, type){
+  const b = document.getElementById('connBanner');
+  b.textContent = msg;
+  b.className = 'conn-banner show ' + type;
+}
+function hideBanner(){
+  const b = document.getElementById('connBanner');
+  b.className = 'conn-banner';
+}
+
+async function dbSaveEntry(entry){
+  await setDoc(doc(entriesCol, entry.id), entry);
+}
+async function dbDeleteEntry(id){
+  await deleteDoc(doc(entriesCol, id));
+}
+async function dbLoadAllEntries(){
+  const snap = await getDocs(entriesCol);
+  return snap.docs.map(d => d.data());
+}
+
+/* =========================================================
+   APP LOGIC (same journal UI, now backed by Firestore)
+   ========================================================= */
+
 /* ---------- painted stargazer-lily logo mark ---------- */
 function lilyLogoSVG(){
   const petalLight = '#e8b7c2';
@@ -397,13 +543,16 @@ async function saveEntry(){
   currentId = id;
 
   try{
-    await window.storage.set(id, JSON.stringify(entry));
+    await dbSaveEntry(entry);
+    hideBanner();
+    saveStatus.textContent = '✓ Saved';
     saveStatus.classList.add('show');
     setTimeout(()=> saveStatus.classList.remove('show'), 1800);
   }catch(err){
     console.error('Save failed', err);
     saveStatus.textContent = '⚠ could not save';
     saveStatus.classList.add('show');
+    showBanner('Could not reach the cloud database. Check your internet connection or Firestore rules.', 'error');
   }
   deleteBtn.style.display = 'inline-block';
 }
@@ -411,7 +560,7 @@ async function saveEntry(){
 async function deleteEntry(){
   if(!currentId) return;
   if(!confirm('Delete this postcard? This cannot be undone.')) return;
-  try{ await window.storage.delete(currentId); }catch(err){ console.error('Delete failed', err); }
+  try{ await dbDeleteEntry(currentId); }catch(err){ console.error('Delete failed', err); }
   entries = entries.filter(x=>x.id!==currentId);
   closeDetail();
 }
@@ -419,19 +568,12 @@ async function deleteEntry(){
 async function loadAllEntries(){
   gridEl.innerHTML = `<div class="empty-state">Gathering your postcards…</div>`;
   try{
-    const listResult = await window.storage.list('entry_');
-    const keys = (listResult && listResult.keys) || [];
-    const loaded = [];
-    for(const k of keys){
-      try{
-        const res = await window.storage.get(k);
-        if(res && res.value) loaded.push(JSON.parse(res.value));
-      }catch(e){ /* skip */ }
-    }
-    entries = loaded;
+    entries = await dbLoadAllEntries();
+    hideBanner();
   }catch(err){
-    console.error('Could not list entries', err);
+    console.error('Could not load entries', err);
     entries = [];
+    showBanner('Could not reach the cloud database. Check your internet connection or Firestore rules.', 'error');
   }
   renderGrid();
 }
