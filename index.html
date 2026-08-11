@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Postcards from my days</title>
+<title>Daily Postcards</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -52,8 +52,8 @@
     transition:background .15s ease, transform .15s ease;
   }
   .btn:hover{background:var(--rose-dark);color:var(--paper);}
-  .btn.ghost{background:transparent;color:#e8c9cf;border:1px solid #e8c9cf;}
-  .btn.ghost:hover{background:rgba(232,201,207,.12);color:var(--paper);}
+  .btn.ghost{background:transparent;color:var(--forest);border:1px solid var(--forest);}
+  .btn.ghost:hover{background:rgba(60,79,46,.08);}
   .btn.small{padding:8px 14px;font-size:.76rem;}
   .btn.text{background:none;color:#cdd3b8;padding:6px 4px;font-weight:600;}
   .btn.text:hover{color:var(--paper);}
@@ -78,11 +78,11 @@
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
   .swatch-code{font-size:.68rem;letter-spacing:.04em;font-weight:600;opacity:.85;}
 
-  /* postcard with an uploaded cover photo: 80% photo / 20% mood-colour band */
+  /* postcard with a chosen cover photo: half photo / half mood-colour band */
   .swatch.has-image{padding:0;}
-  .cover-photo{flex:0 0 80%;background-size:cover;background-position:center;background-color:#00000010;}
-  .cover-band{flex:0 0 20%;display:flex;flex-direction:column;justify-content:center;padding:10px 16px;min-height:46px;}
-  .cover-band .swatch-title{margin-bottom:2px;}
+  .cover-photo{flex:0 0 50%;background-size:cover;background-color:#00000010;}
+  .cover-band{flex:0 0 50%;display:flex;flex-direction:column;justify-content:center;padding:12px 16px;}
+  .cover-band .swatch-title{margin-bottom:3px;-webkit-line-clamp:3;}
   .cover-band .swatch-code{opacity:.85;}
 
   .new-card .swatch{
@@ -101,36 +101,57 @@
   .back-btn{margin:0 0 16px;}
   .back-card{
     background:var(--paper);border-radius:16px;box-shadow:0 20px 40px rgba(20,20,10,.35);
-    display:grid;grid-template-columns:1fr 250px;min-height:470px;overflow:hidden;
+    display:grid;grid-template-columns:1fr 260px;min-height:470px;overflow:hidden;
   }
-  @media (max-width:720px){.back-card{grid-template-columns:1fr;}}
+  @media (max-width:760px){.back-card{grid-template-columns:1fr;}}
 
-  .back-left{padding:34px 32px 26px;position:relative;}
+  .back-left{padding:34px 32px 26px;}
   .pc-title-input{
     width:100%;border:none;background:transparent;outline:none;font-family:'Fraunces',serif;
-    font-weight:500;font-size:1.6rem;color:var(--forest);margin-bottom:16px;
+    font-weight:500;font-size:1.6rem;color:var(--forest);margin-bottom:18px;
   }
   .pc-title-input::placeholder{color:#c9bfa8;}
-  #entryText{
-    width:100%;min-height:350px;border:none;background:transparent;resize:vertical;outline:none;
+
+  .editor-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
+  .word-count{font-size:.72rem;color:var(--ink-soft);white-space:nowrap;}
+
+  .entry-editor{
+    width:100%;min-height:320px;outline:none;
     font-family:'Karla',sans-serif;font-size:1.02rem;line-height:1.9rem;color:var(--ink);
     background-image:repeating-linear-gradient(to bottom, transparent, transparent 1.85rem, var(--line) 1.9rem);
-    padding-top:2px;
+    padding-top:2px;padding-bottom:20px;
   }
-  #entryText::placeholder{color:#c4b49e;font-style:italic;}
-  .word-count{position:absolute;bottom:10px;right:16px;font-size:.7rem;color:var(--ink-soft);}
+  .entry-editor:empty:before{content:attr(data-placeholder);color:#c4b49e;font-style:italic;}
+  .entry-editor p{margin:0 0 0 0;}
+  .entry-editor img{max-width:100%;}
 
-  .back-right{padding:28px 24px;display:flex;flex-direction:column;gap:26px;background:#f2e6d0;
-    border-left:1px solid var(--line);}
-  @media (max-width:720px){.back-right{border-left:none;border-top:1px solid var(--line);}}
+  /* inline photo grid blocks: up to 3 photos per row */
+  .img-grid{display:grid;grid-template-columns:repeat(var(--cols,3), 1fr);gap:6px;margin:10px 0 16px;}
+  .img-item{display:block;border:none;padding:0;background:rgba(0,0,0,.06);border-radius:8px;
+    overflow:hidden;cursor:zoom-in;aspect-ratio:1/1;}
+  .grid-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s ease;}
+  .img-item:hover .grid-img{transform:scale(1.05);}
+
+  .back-right{padding:26px 22px;display:flex;flex-direction:column;gap:24px;background:#f2e6d0;
+    border-left:1px solid var(--line);overflow-y:auto;}
+  @media (max-width:760px){.back-right{border-left:none;border-top:1px solid var(--line);}}
 
   .section-label{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
     color:var(--ink-soft);margin-bottom:10px;}
 
-  .cover-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .cover-preview-wrap{margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid var(--line);position:relative;}
-  .cover-preview-img{display:block;width:100%;height:120px;object-fit:cover;}
-  .cover-hint{font-size:.68rem;color:var(--ink-soft);margin-top:6px;line-height:1.4;}
+  .cover-hint{font-size:.72rem;color:var(--ink-soft);line-height:1.45;}
+  .cover-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .cover-thumb{width:42px;height:42px;border-radius:8px;background-size:cover;background-position:center;
+    border:2px solid transparent;cursor:pointer;padding:0;}
+  .cover-thumb.selected{border-color:var(--forest);box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--forest);}
+
+  .cover-position{margin-top:6px;}
+  .cover-preview-box{width:100%;aspect-ratio:1.8/1;border-radius:10px;background-size:cover;
+    border:1px solid var(--line);margin-bottom:10px;}
+  .position-sliders{display:flex;flex-direction:column;gap:10px;}
+  .position-sliders label{font-size:.66rem;color:var(--ink-soft);display:flex;flex-direction:column;gap:5px;
+    font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+  .position-sliders input[type="range"]{width:100%;accent-color:var(--forest);}
 
   .mood-swatches{display:flex;flex-direction:column;gap:8px;}
   .mood-swatch{
@@ -143,7 +164,6 @@
   .mood-swatch.selected .chip{box-shadow:0 0 0 2px var(--paper), 0 0 0 3.5px var(--forest);}
   .mood-swatch .info{line-height:1.25;}
   .mood-swatch .mname{font-size:.82rem;font-weight:600;color:var(--ink);}
-  .mood-swatch .mcode{font-size:.66rem;color:var(--ink-soft);letter-spacing:.03em;}
 
   .date-field{display:flex;flex-direction:column;gap:4px;}
   .date-input{
@@ -151,9 +171,17 @@
     background:transparent;color:var(--ink);outline:none;cursor:pointer;padding:0;
   }
 
-  .back-actions{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:8px;}
+  .back-actions{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:8px;padding-top:6px;}
   .save-status{font-size:.7rem;color:var(--forest);font-weight:700;opacity:0;transition:opacity .3s ease;display:block;margin-top:6px;text-align:right;}
   .save-status.show{opacity:1;}
+
+  /* ---------- LIGHTBOX ---------- */
+  .lightbox{position:fixed;inset:0;background:rgba(20,16,10,.92);display:none;align-items:center;
+    justify-content:center;z-index:1000;padding:36px;cursor:zoom-out;}
+  .lightbox.show{display:flex;}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 20px 50px rgba(0,0,0,.5);}
+  .lightbox-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;
+    font-size:2rem;line-height:1;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -184,21 +212,29 @@
     <div class="back-card">
       <div class="back-left">
         <input type="text" class="pc-title-input" id="titleInput" placeholder="Title this page…">
-        <textarea id="entryText" placeholder="Write about your day."></textarea>
-        <span class="word-count" id="wordCount">0 words</span>
+        <div class="editor-toolbar">
+          <button type="button" class="btn ghost small" id="insertPhotosBtn">+ Insert photos</button>
+          <input type="file" id="insertImagesInput" accept="image/*" multiple style="display:none;">
+          <span class="word-count" id="wordCount">0 words</span>
+        </div>
+        <div id="entryText" class="entry-editor" contenteditable="true"
+             data-placeholder="Write about your day. Use “Insert photos” to drop pictures anywhere in your note — click any photo to view it full-size."></div>
       </div>
       <div class="back-right">
         <div>
           <div class="section-label">Cover photo</div>
-          <div class="cover-controls">
-            <input type="file" id="imageInput" accept="image/*" style="display:none;">
-            <button class="btn ghost small" id="chooseImageBtn">Choose photo</button>
-            <button class="btn text small" id="removeImageBtn" style="display:none;">Remove</button>
+          <div id="coverPicker"></div>
+          <div class="cover-position" id="coverPosBlock" style="display:none;">
+            <div class="cover-preview-box" id="coverPreviewBox"></div>
+            <div class="position-sliders">
+              <label>Horizontal position
+                <input type="range" id="coverX" min="0" max="100" value="50">
+              </label>
+              <label>Vertical position
+                <input type="range" id="coverY" min="0" max="100" value="50">
+              </label>
+            </div>
           </div>
-          <div class="cover-preview-wrap" id="coverPreviewWrap" style="display:none;">
-            <img id="coverPreviewImg" class="cover-preview-img" alt="Cover preview">
-          </div>
-          <div class="cover-hint" id="coverHint">No photo — the postcard will show a mood-toned illustration instead.</div>
         </div>
         <div>
           <div class="section-label">Mood</div>
@@ -219,6 +255,12 @@
     </div>
   </div>
 
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">&times;</button>
+  <img id="lightboxImg" alt="">
 </div>
 
 <script>
@@ -277,7 +319,7 @@ function lilyLogoSVG(){
 }
 document.getElementById('lilyLogo').innerHTML = lilyLogoSVG();
 
-/* ---------- mood palette: the four Pantone swatches ---------- */
+/* ---------- mood palette ---------- */
 const MOODS = [
   {id:'happy',       label:'Happy',       bg:'#cf8798', ink:'#3a1c24', sprig:'#b06779'},
   {id:'calm',        label:'Calm',        bg:'#b8be7c', ink:'#3c4f2e', sprig:'#9ba362'},
@@ -288,8 +330,8 @@ const MOODS = [
 function moodOf(id){ return MOODS.find(m=>m.id===id) || null; }
 
 /* full stargazer-lily bloom, tone-on-tone with the postcard's mood colour,
-   echoing the reference photo: six splayed recurved petals, a radiating
-   throat, and curved stamens with anthers */
+   shown when an entry has no cover photo: six splayed recurved petals, a
+   radiating throat, and curved stamens with anthers */
 function sprigSVG(m){
   const petalFill = 'rgba(255,255,255,0.16)';
   const vein = m.sprig;
@@ -329,7 +371,10 @@ function sprigSVG(m){
 let entries = [];
 let currentId = null;
 let selectedMood = null;
-let selectedImage = null; // dataURL string or null
+let currentImages = [];      // [{id, src}] — every photo currently inserted in this entry's note
+let selectedCoverId = null;  // id of the image (from currentImages) chosen as the cover, or null
+let coverPosition = {x:50, y:50}; // focal point percentages for the cover crop
+let savedRange = null;       // last known cursor position inside the editor
 
 const el = id => document.getElementById(id);
 const gridEl = el('grid');
@@ -344,22 +389,34 @@ const wordCount = el('wordCount');
 const saveStatus = el('saveStatus');
 const deleteBtn = el('deleteBtn');
 const moodSwatches = el('moodSwatches');
-const imageInput = el('imageInput');
-const chooseImageBtn = el('chooseImageBtn');
-const removeImageBtn = el('removeImageBtn');
-const coverPreviewWrap = el('coverPreviewWrap');
-const coverPreviewImg = el('coverPreviewImg');
-const coverHint = el('coverHint');
+const insertPhotosBtn = el('insertPhotosBtn');
+const insertImagesInput = el('insertImagesInput');
+const coverPicker = el('coverPicker');
+const coverPosBlock = el('coverPosBlock');
+const coverPreviewBox = el('coverPreviewBox');
+const coverXSlider = el('coverX');
+const coverYSlider = el('coverY');
+const lightbox = el('lightbox');
+const lightboxImg = el('lightboxImg');
+const lightboxClose = el('lightboxClose');
 
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function fmtDateShort(d){
   const dt = new Date(d+'T00:00:00');
   return dt.toLocaleDateString(undefined,{month:'short', day:'numeric', year:'numeric'});
 }
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function stripTags(html){
+  const d = document.createElement('div');
+  d.innerHTML = html || '';
+  return d.textContent || '';
+}
 
-/* Shrinks & compresses an uploaded photo to a reasonable size before it's
-   stored, so entries with photos stay well under storage limits. */
-function compressImage(file, maxDim=900, quality=0.82){
+/* Shrinks & compresses an uploaded photo before it's stored, so entries
+   with several photos stay well under storage limits. */
+function compressImage(file, maxDim=1000, quality=0.8){
   return new Promise((resolve, reject)=>{
     const reader = new FileReader();
     reader.onerror = () => reject(new Error('Could not read file'));
@@ -381,26 +438,155 @@ function compressImage(file, maxDim=900, quality=0.82){
   });
 }
 
-function renderCoverPreview(){
-  if(selectedImage){
-    coverPreviewWrap.style.display = 'block';
-    coverPreviewImg.src = selectedImage;
-    removeImageBtn.style.display = 'inline-block';
-    coverHint.textContent = 'This photo will cover the postcard, with a thin band of your mood colour.';
-  } else {
-    coverPreviewWrap.style.display = 'none';
-    coverPreviewImg.src = '';
-    removeImageBtn.style.display = 'none';
-    coverHint.textContent = 'No photo — the postcard will show a mood-toned illustration instead.';
+/* ---------- lightbox ---------- */
+function openLightbox(src){
+  lightboxImg.src = src;
+  lightbox.classList.add('show');
+}
+function closeLightbox(){
+  lightbox.classList.remove('show');
+  lightboxImg.src = '';
+}
+lightbox.addEventListener('click', closeLightbox);
+lightboxClose.addEventListener('click', (e)=>{ e.stopPropagation(); closeLightbox(); });
+lightboxImg.addEventListener('click', (e)=> e.stopPropagation());
+
+/* ---------- editor: cursor tracking + inline photo insertion ---------- */
+function captureSelection(){
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount>0){
+    const r = sel.getRangeAt(0);
+    if(entryText.contains(r.commonAncestorContainer)){ savedRange = r.cloneRange(); return; }
   }
 }
+function restoreSelection(){
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  if(savedRange){
+    try{ sel.addRange(savedRange); return; }catch(e){ /* fall through */ }
+  }
+  const r = document.createRange();
+  r.selectNodeContents(entryText);
+  r.collapse(false);
+  sel.addRange(r);
+}
+entryText.addEventListener('mouseup', captureSelection);
+entryText.addEventListener('keyup', captureSelection);
 
-/* ---------- grid rendering ---------- */
+entryText.addEventListener('click', (e)=>{
+  const img = e.target.closest('img.grid-img');
+  if(img && img.src) openLightbox(img.src);
+});
+
+insertPhotosBtn.addEventListener('click', ()=>{
+  captureSelection();
+  insertImagesInput.click();
+});
+
+insertImagesInput.addEventListener('change', async ()=>{
+  const files = Array.from(insertImagesInput.files || []);
+  if(!files.length) return;
+  insertPhotosBtn.disabled = true;
+  insertPhotosBtn.textContent = 'Adding photos…';
+  const newImgs = [];
+  for(const file of files){
+    try{
+      const src = await compressImage(file);
+      const id = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+      newImgs.push({id, src});
+      currentImages.push({id, src});
+    }catch(err){ console.error('Could not process a photo', err); }
+  }
+  if(newImgs.length){
+    const cols = Math.min(newImgs.length, 3);
+    const gridHtml = `<div class="img-grid" contenteditable="false" style="--cols:${cols};">` +
+      newImgs.map(im => `<span class="img-item"><img class="grid-img" data-img-id="${im.id}" src="${im.src}" alt=""></span>`).join('') +
+      `</div><p><br></p>`;
+    entryText.focus();
+    restoreSelection();
+    document.execCommand('insertHTML', false, gridHtml);
+    savedRange = null;
+  }
+  insertImagesInput.value = '';
+  insertPhotosBtn.disabled = false;
+  insertPhotosBtn.textContent = '+ Insert photos';
+  updateWordCount();
+  renderCoverPicker();
+});
+
+/* If the person deletes a photo block by editing the text directly, keep
+   the image pool and cover selection in sync with what's actually there. */
+function syncImagesFromDom(){
+  const idsInDom = new Set(Array.from(entryText.querySelectorAll('img[data-img-id]')).map(im => im.dataset.imgId));
+  currentImages = currentImages.filter(im => idsInDom.has(im.id));
+  if(selectedCoverId && !idsInDom.has(selectedCoverId)){ selectedCoverId = null; }
+  renderCoverPicker();
+}
+entryText.addEventListener('input', ()=>{ updateWordCount(); syncImagesFromDom(); });
+
+function updateWordCount(){
+  const words = entryText.innerText.trim().split(/\s+/).filter(Boolean).length;
+  wordCount.textContent = words + (words===1 ? ' word' : ' words');
+}
+
+/* strips heavy data-URLs out of the saved HTML (images are stored once,
+   in currentImages, and re-attached on load) */
+function serializeEntryHtml(){
+  const clone = entryText.cloneNode(true);
+  clone.querySelectorAll('img[data-img-id]').forEach(img => img.removeAttribute('src'));
+  return clone.innerHTML;
+}
+
+/* ---------- cover picker (choose one of the note's own photos) ---------- */
+function renderCoverPicker(){
+  if(currentImages.length===0){
+    coverPicker.innerHTML = `<div class="cover-hint">Add photos to your note first, then pick one here as the cover.</div>`;
+    coverPosBlock.style.display = 'none';
+    return;
+  }
+  coverPicker.innerHTML =
+    `<div class="cover-thumbs">` +
+    currentImages.map(im => `<button type="button" class="cover-thumb ${selectedCoverId===im.id?'selected':''}" data-cover-id="${im.id}" style="background-image:url('${im.src}');" title="Use as cover"></button>`).join('') +
+    `</div><div class="cover-hint">${selectedCoverId ? 'Click the selected photo again to remove it as the cover.' : 'Click a photo to use it as this postcard\\'s cover.'}</div>`;
+
+  coverPicker.querySelectorAll('.cover-thumb').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.coverId;
+      if(selectedCoverId === id){
+        selectedCoverId = null;
+      } else {
+        selectedCoverId = id;
+        coverPosition = {x:50, y:50};
+      }
+      renderCoverPicker();
+      renderCoverPositionUI();
+    });
+  });
+  renderCoverPositionUI();
+}
+
+function renderCoverPositionUI(){
+  if(!selectedCoverId){ coverPosBlock.style.display = 'none'; return; }
+  const rec = currentImages.find(im => im.id===selectedCoverId);
+  if(!rec){ coverPosBlock.style.display = 'none'; return; }
+  coverPosBlock.style.display = 'block';
+  coverPreviewBox.style.backgroundImage = `url('${rec.src}')`;
+  coverPreviewBox.style.backgroundPosition = `${coverPosition.x}% ${coverPosition.y}%`;
+  coverXSlider.value = coverPosition.x;
+  coverYSlider.value = coverPosition.y;
+}
+function updateCoverPreviewStyle(){
+  coverPreviewBox.style.backgroundPosition = `${coverPosition.x}% ${coverPosition.y}%`;
+}
+coverXSlider.addEventListener('input', ()=>{ coverPosition.x = Number(coverXSlider.value); updateCoverPreviewStyle(); });
+coverYSlider.addEventListener('input', ()=>{ coverPosition.y = Number(coverYSlider.value); updateCoverPreviewStyle(); });
+
+/* ---------- grid rendering (postcard wall) ---------- */
 function renderGrid(filter=''){
   const f = filter.trim().toLowerCase();
   const sorted = [...entries].sort((a,b)=> b.date.localeCompare(a.date));
   const filtered = f ? sorted.filter(e =>
-    (e.title||'').toLowerCase().includes(f) || (e.text||'').toLowerCase().includes(f)
+    (e.title||'').toLowerCase().includes(f) || stripTags(e.text||'').toLowerCase().includes(f)
   ) : sorted;
 
   let html = `
@@ -418,11 +604,19 @@ function renderGrid(filter=''){
   } else {
     html += filtered.map(e=>{
       const m = moodOf(e.mood) || MOODS[2];
-      if(e.image){
+      let coverSrc = null;
+      let pos = e.coverPosition || {x:50, y:50};
+      if(e.coverImageId && Array.isArray(e.images)){
+        const rec = e.images.find(im => im.id===e.coverImageId);
+        if(rec) coverSrc = rec.src;
+      }
+      if(!coverSrc && e.image){ coverSrc = e.image; pos = {x:50, y:50}; } // legacy single-cover entries
+
+      if(coverSrc){
         return `
         <div class="postcard" data-id="${e.id}">
           <div class="swatch has-image">
-            <div class="cover-photo" style="background-image:url('${e.image}');"></div>
+            <div class="cover-photo" style="background-image:url('${coverSrc}');background-position:${pos.x}% ${pos.y}%;"></div>
             <div class="cover-band" style="background:${m.bg};color:${m.ink};">
               <div class="swatch-title">${e.title ? escapeHtml(e.title) : 'Untitled page'}</div>
               <div class="swatch-code">${fmtDateShort(e.date)} · ${m.label.toUpperCase()}</div>
@@ -451,10 +645,6 @@ function renderGrid(filter=''){
   });
 }
 
-function escapeHtml(s){
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
 /* ---------- mood picker (detail view) ---------- */
 function renderMoodSwatches(){
   moodSwatches.innerHTML = MOODS.map(m=>`
@@ -480,22 +670,30 @@ function openEntry(id){
     if(!e) return;
     currentId = e.id;
     titleInput.value = e.title || '';
-    entryText.value = e.text || '';
     dateInput.value = e.date;
     selectedMood = e.mood || null;
-    selectedImage = e.image || null;
+    currentImages = Array.isArray(e.images) ? e.images.map(im => ({...im})) : [];
+    entryText.innerHTML = e.text || '';
+    entryText.querySelectorAll('img[data-img-id]').forEach(img=>{
+      const rec = currentImages.find(x => x.id===img.dataset.imgId);
+      if(rec) img.src = rec.src;
+    });
+    selectedCoverId = e.coverImageId || null;
+    coverPosition = e.coverPosition || {x:50, y:50};
     deleteBtn.style.display = 'inline-block';
   } else {
     currentId = null;
     titleInput.value = '';
-    entryText.value = '';
     dateInput.value = todayStr();
     selectedMood = null;
-    selectedImage = null;
+    currentImages = [];
+    entryText.innerHTML = '';
+    selectedCoverId = null;
+    coverPosition = {x:50, y:50};
     deleteBtn.style.display = 'none';
   }
   renderMoodSwatches();
-  renderCoverPreview();
+  renderCoverPicker();
   updateWordCount();
   gridView.style.display = 'none';
   gridToolbar.style.display = 'none';
@@ -510,20 +708,20 @@ function closeDetail(){
   renderGrid(searchBox.value);
 }
 
-function updateWordCount(){
-  const words = entryText.value.trim().split(/\s+/).filter(Boolean).length;
-  wordCount.textContent = words + (words===1 ? ' word' : ' words');
-}
-
 async function saveEntry(){
   const id = currentId || ('entry_' + Date.now());
+  const textHtml = serializeEntryHtml();
+  const usedIds = new Set(Array.from(entryText.querySelectorAll('img[data-img-id]')).map(im => im.dataset.imgId));
+  const imagesToSave = currentImages.filter(im => usedIds.has(im.id));
   const entry = {
     id,
     date: dateInput.value || todayStr(),
     title: titleInput.value,
-    text: entryText.value,
+    text: textHtml,
+    images: imagesToSave,
     mood: selectedMood,
-    image: selectedImage || null,
+    coverImageId: (selectedCoverId && usedIds.has(selectedCoverId)) ? selectedCoverId : null,
+    coverPosition: coverPosition,
     updated: new Date().toISOString()
   };
   const idx = entries.findIndex(x=>x.id===id);
@@ -536,7 +734,7 @@ async function saveEntry(){
     setTimeout(()=> saveStatus.classList.remove('show'), 1800);
   }catch(err){
     console.error('Save failed', err);
-    saveStatus.textContent = '⚠ could not save (try a smaller photo?)';
+    saveStatus.textContent = '⚠ could not save (try fewer/smaller photos)';
     saveStatus.classList.add('show');
   }
   deleteBtn.style.display = 'inline-block';
@@ -575,28 +773,7 @@ el('newEntryBtn').addEventListener('click', ()=> openEntry(null));
 el('backBtn').addEventListener('click', closeDetail);
 el('saveBtn').addEventListener('click', saveEntry);
 el('deleteBtn').addEventListener('click', deleteEntry);
-entryText.addEventListener('input', updateWordCount);
 searchBox.addEventListener('input', ()=> renderGrid(searchBox.value));
-
-chooseImageBtn.addEventListener('click', ()=> imageInput.click());
-removeImageBtn.addEventListener('click', ()=>{
-  selectedImage = null;
-  imageInput.value = '';
-  renderCoverPreview();
-});
-imageInput.addEventListener('change', async ()=>{
-  const file = imageInput.files && imageInput.files[0];
-  if(!file) return;
-  coverHint.textContent = 'Preparing photo…';
-  try{
-    selectedImage = await compressImage(file);
-    renderCoverPreview();
-  }catch(err){
-    console.error('Image processing failed', err);
-    coverHint.textContent = "⚠ Couldn't read that photo — try a different file.";
-  }
-  imageInput.value = '';
-});
 
 loadAllEntries();
 </script>
