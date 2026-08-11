@@ -547,7 +547,7 @@ function renderCoverPicker(){
   coverPicker.innerHTML =
     `<div class="cover-thumbs">` +
     currentImages.map(im => `<button type="button" class="cover-thumb ${selectedCoverId===im.id?'selected':''}" data-cover-id="${im.id}" style="background-image:url('${im.src}');" title="Use as cover"></button>`).join('') +
-    `</div><div class="cover-hint">${selectedCoverId ? 'Click the selected photo again to remove it as the cover.' : 'Click a photo to use it as this postcard\\'s cover.'}</div>`;
+    `</div><div class="cover-hint">${selectedCoverId ? "Click the selected photo again to remove it as the cover." : "Click a photo to use it as this postcard's cover."}</div>`;
 
   coverPicker.querySelectorAll('.cover-thumb').forEach(btn=>{
     btn.addEventListener('click', ()=>{
