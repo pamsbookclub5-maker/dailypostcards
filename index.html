@@ -127,10 +127,15 @@
 
   /* inline photo grid blocks: up to 3 photos per row */
   .img-grid{display:grid;grid-template-columns:repeat(var(--cols,3), 1fr);gap:6px;margin:10px 0 16px;}
-  .img-item{display:block;border:none;padding:0;background:rgba(0,0,0,.06);border-radius:8px;
+  .img-item{position:relative;display:block;border:none;padding:0;background:rgba(0,0,0,.06);border-radius:8px;
     overflow:hidden;cursor:zoom-in;aspect-ratio:1/1;}
   .grid-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s ease;}
   .img-item:hover .grid-img{transform:scale(1.05);}
+  .img-delete{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;
+    background:rgba(20,16,10,.6);color:#fff;border:none;display:flex;align-items:center;justify-content:center;
+    font-size:14px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s ease, background .15s ease;}
+  .img-item:hover .img-delete{opacity:1;}
+  .img-delete:hover{background:rgba(110,59,66,.9);}
 
   .back-right{padding:26px 22px;display:flex;flex-direction:column;gap:24px;background:#f2e6d0;
     border-left:1px solid var(--line);overflow-y:auto;}
@@ -140,10 +145,15 @@
     color:var(--ink-soft);margin-bottom:10px;}
 
   .cover-hint{font-size:.72rem;color:var(--ink-soft);line-height:1.45;}
-  .cover-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .cover-thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;}
+  .cover-thumb-wrap{position:relative;width:42px;height:42px;}
   .cover-thumb{width:42px;height:42px;border-radius:8px;background-size:cover;background-position:center;
-    border:2px solid transparent;cursor:pointer;padding:0;}
+    border:2px solid transparent;cursor:pointer;padding:0;display:block;}
   .cover-thumb.selected{border-color:var(--forest);box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--forest);}
+  .cover-thumb-del{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;
+    background:#6e3b42;color:#fff;border:1.5px solid var(--paper);font-size:11px;line-height:1;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .cover-thumb-del:hover{background:#4a262c;}
 
   .cover-position{margin-top:6px;}
   .cover-preview-box{width:100%;aspect-ratio:1.8/1;border-radius:10px;background-size:cover;
@@ -474,9 +484,39 @@ entryText.addEventListener('mouseup', captureSelection);
 entryText.addEventListener('keyup', captureSelection);
 
 entryText.addEventListener('click', (e)=>{
+  const delBtn = e.target.closest('.img-delete');
+  if(delBtn){
+    e.preventDefault();
+    e.stopPropagation();
+    deletePhoto(delBtn.dataset.delId);
+    return;
+  }
   const img = e.target.closest('img.grid-img');
   if(img && img.src) openLightbox(img.src);
 });
+
+/* Removes a photo everywhere it lives: from the inline grid in the note,
+   from the cover picker, and clears it as the cover if it was selected. */
+function deletePhoto(id){
+  if(!id) return;
+  if(!confirm('Remove this photo? This cannot be undone.')) return;
+
+  const imgEl = entryText.querySelector(`img[data-img-id="${id}"]`);
+  if(imgEl){
+    const item = imgEl.closest('.img-item');
+    const grid = imgEl.closest('.img-grid');
+    if(item) item.remove();
+    if(grid){
+      const remaining = grid.querySelectorAll('.img-item').length;
+      if(remaining === 0){ grid.remove(); }
+      else { grid.style.setProperty('--cols', Math.min(remaining, 3)); }
+    }
+  }
+  currentImages = currentImages.filter(im => im.id !== id);
+  if(selectedCoverId === id) selectedCoverId = null;
+  renderCoverPicker();
+  updateWordCount();
+}
 
 insertPhotosBtn.addEventListener('click', ()=>{
   captureSelection();
@@ -500,7 +540,7 @@ insertImagesInput.addEventListener('change', async ()=>{
   if(newImgs.length){
     const cols = Math.min(newImgs.length, 3);
     const gridHtml = `<div class="img-grid" contenteditable="false" style="--cols:${cols};">` +
-      newImgs.map(im => `<span class="img-item"><img class="grid-img" data-img-id="${im.id}" src="${im.src}" alt=""></span>`).join('') +
+      newImgs.map(im => `<span class="img-item"><img class="grid-img" data-img-id="${im.id}" src="${im.src}" alt=""><button type="button" class="img-delete" data-del-id="${im.id}" title="Remove photo">&times;</button></span>`).join('') +
       `</div><p><br></p>`;
     entryText.focus();
     restoreSelection();
@@ -546,7 +586,12 @@ function renderCoverPicker(){
   }
   coverPicker.innerHTML =
     `<div class="cover-thumbs">` +
-    currentImages.map(im => `<button type="button" class="cover-thumb ${selectedCoverId===im.id?'selected':''}" data-cover-id="${im.id}" style="background-image:url('${im.src}');" title="Use as cover"></button>`).join('') +
+    currentImages.map(im => `
+      <span class="cover-thumb-wrap">
+        <button type="button" class="cover-thumb ${selectedCoverId===im.id?'selected':''}" data-cover-id="${im.id}" style="background-image:url('${im.src}');" title="Use as cover"></button>
+        <button type="button" class="cover-thumb-del" data-del-id="${im.id}" title="Remove photo">&times;</button>
+      </span>
+    `).join('') +
     `</div><div class="cover-hint">${selectedCoverId ? "Click the selected photo again to remove it as the cover." : "Click a photo to use it as this postcard's cover."}</div>`;
 
   coverPicker.querySelectorAll('.cover-thumb').forEach(btn=>{
@@ -560,6 +605,12 @@ function renderCoverPicker(){
       }
       renderCoverPicker();
       renderCoverPositionUI();
+    });
+  });
+  coverPicker.querySelectorAll('.cover-thumb-del').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      deletePhoto(btn.dataset.delId);
     });
   });
   renderCoverPositionUI();
