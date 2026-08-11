@@ -71,12 +71,19 @@
     display:flex;flex-direction:column;justify-content:space-between;
   }
   .postcard:hover .swatch{transform:translateY(-5px);box-shadow:0 16px 30px rgba(20,20,10,.34);}
-  .swatch .sprig{position:absolute;right:-10px;bottom:-6px;width:65%;height:75%;opacity:.55;}
+  .swatch .sprig{position:absolute;right:-6%;bottom:-8%;width:78%;height:88%;opacity:.5;}
   .swatch-label{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;position:relative;z-index:1;}
   .swatch-bottom{position:relative;z-index:1;}
   .swatch-title{font-family:'Fraunces',serif;font-weight:500;font-size:1.15rem;line-height:1.2;margin-bottom:5px;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
   .swatch-code{font-size:.68rem;letter-spacing:.04em;font-weight:600;opacity:.85;}
+
+  /* postcard with an uploaded cover photo: 80% photo / 20% mood-colour band */
+  .swatch.has-image{padding:0;}
+  .cover-photo{flex:0 0 80%;background-size:cover;background-position:center;background-color:#00000010;}
+  .cover-band{flex:0 0 20%;display:flex;flex-direction:column;justify-content:center;padding:10px 16px;min-height:46px;}
+  .cover-band .swatch-title{margin-bottom:2px;}
+  .cover-band .swatch-code{opacity:.85;}
 
   .new-card .swatch{
     background:transparent;border:1.5px dashed rgba(251,245,234,.4);box-shadow:none;
@@ -120,6 +127,11 @@
   .section-label{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
     color:var(--ink-soft);margin-bottom:10px;}
 
+  .cover-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .cover-preview-wrap{margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid var(--line);position:relative;}
+  .cover-preview-img{display:block;width:100%;height:120px;object-fit:cover;}
+  .cover-hint{font-size:.68rem;color:var(--ink-soft);margin-top:6px;line-height:1.4;}
+
   .mood-swatches{display:flex;flex-direction:column;gap:8px;}
   .mood-swatch{
     display:flex;align-items:center;gap:10px;border:none;background:none;cursor:pointer;padding:6px 8px;
@@ -142,65 +154,10 @@
   .back-actions{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:8px;}
   .save-status{font-size:.7rem;color:var(--forest);font-weight:700;opacity:0;transition:opacity .3s ease;display:block;margin-top:6px;text-align:right;}
   .save-status.show{opacity:1;}
-
-  /* ---------- connection banner ---------- */
-  .conn-banner{
-    max-width:1180px;margin:0 auto 16px;padding:10px 16px;border-radius:8px;
-    font-size:.8rem;font-weight:600;display:none;
-  }
-  .conn-banner.show{display:block;}
-  .conn-banner.error{background:rgba(176,103,121,.25);color:#ffe3e8;border:1px solid rgba(176,103,121,.6);}
-  .conn-banner.info{background:rgba(184,190,124,.2);color:#eef1de;border:1px solid rgba(184,190,124,.5);}
-
-  /* ---------- login screen ---------- */
-  #loginScreen{
-    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
-  }
-  .login-card{
-    background:var(--paper);border-radius:16px;box-shadow:0 20px 40px rgba(20,20,10,.35);
-    padding:40px 36px;width:100%;max-width:360px;
-  }
-  .login-card h2{font-family:'Fraunces',serif;font-weight:500;font-style:italic;color:var(--forest);
-    margin:0 0 6px;font-size:1.5rem;}
-  .login-card p{font-size:.82rem;color:var(--ink-soft);margin:0 0 24px;}
-  .login-field{margin-bottom:16px;}
-  .login-field label{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
-    font-weight:700;color:var(--ink-soft);margin-bottom:6px;}
-  .login-field input{
-    width:100%;padding:11px 13px;border-radius:8px;border:1.5px solid var(--line);
-    font-family:'Karla',sans-serif;font-size:.92rem;color:var(--ink);outline:none;background:#fff;
-  }
-  .login-field input:focus{border-color:var(--forest);}
-  .login-error{font-size:.78rem;color:var(--rose-dark);margin:0 0 14px;min-height:1em;}
-  .login-btn{width:100%;padding:12px;font-size:.88rem;}
-  #appWrap{display:none;}
-  .signout-btn{background:none;border:none;color:#cdd3b8;font-size:.72rem;cursor:pointer;
-    text-decoration:underline;padding:0;}
-  .signout-btn:hover{color:var(--paper);}
 </style>
 </head>
 <body>
-
-<div id="loginScreen">
-  <div class="login-card">
-    <h2>Daily Postcards</h2>
-    <p>Sign in to open your journal.</p>
-    <div class="login-field">
-      <label for="loginEmail">Email</label>
-      <input type="email" id="loginEmail" autocomplete="username">
-    </div>
-    <div class="login-field">
-      <label for="loginPassword">Password</label>
-      <input type="password" id="loginPassword" autocomplete="current-password">
-    </div>
-    <div class="login-error" id="loginError"></div>
-    <button class="btn login-btn" id="loginBtn">Sign in</button>
-  </div>
-</div>
-
-<div class="app" id="appWrap">
-
-  <div class="conn-banner" id="connBanner"></div>
+<div class="app">
 
   <header>
     <div class="brand-wrap">
@@ -213,7 +170,6 @@
     <div class="toolbar" id="gridToolbar">
       <input type="text" id="searchBox" placeholder="Search postcards…">
       <button class="btn" id="newEntryBtn">+ Write one</button>
-      <button class="signout-btn" id="signOutBtn">Sign out</button>
     </div>
   </header>
 
@@ -232,6 +188,18 @@
         <span class="word-count" id="wordCount">0 words</span>
       </div>
       <div class="back-right">
+        <div>
+          <div class="section-label">Cover photo</div>
+          <div class="cover-controls">
+            <input type="file" id="imageInput" accept="image/*" style="display:none;">
+            <button class="btn ghost small" id="chooseImageBtn">Choose photo</button>
+            <button class="btn text small" id="removeImageBtn" style="display:none;">Remove</button>
+          </div>
+          <div class="cover-preview-wrap" id="coverPreviewWrap" style="display:none;">
+            <img id="coverPreviewImg" class="cover-preview-img" alt="Cover preview">
+          </div>
+          <div class="cover-hint" id="coverHint">No photo — the postcard will show a mood-toned illustration instead.</div>
+        </div>
         <div>
           <div class="section-label">Mood</div>
           <div class="mood-swatches" id="moodSwatches"></div>
@@ -253,96 +221,32 @@
 
 </div>
 
-<script type="module">
-/* =========================================================
-   FIREBASE SETUP — this replaces the old window.storage API
-   so entries sync across every device, not just one browser.
-   ========================================================= */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import {
-  getFirestore, collection, doc, setDoc, getDocs, deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import {
-  getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAlQmh4z0IoCDuGh7-_ljPmkvL1PJanJu0",
-  authDomain: "daily-postcard-a5908.firebaseapp.com",
-  projectId: "daily-postcard-a5908",
-  storageBucket: "daily-postcard-a5908.firebasestorage.app",
-  messagingSenderId: "456546507268",
-  appId: "1:456546507268:web:54800d8c73153e7030f351"
-};
-
-const fbApp = initializeApp(firebaseConfig);
-const db = getFirestore(fbApp);
-const auth = getAuth(fbApp);
-const entriesCol = collection(db, "entries");
-
-/* ---------- login gate ---------- */
-const loginScreen = document.getElementById('loginScreen');
-const appWrap = document.getElementById('appWrap');
-const loginEmail = document.getElementById('loginEmail');
-const loginPassword = document.getElementById('loginPassword');
-const loginError = document.getElementById('loginError');
-const loginBtn = document.getElementById('loginBtn');
-const signOutBtn = document.getElementById('signOutBtn');
-
-async function doLogin(){
-  loginError.textContent = '';
-  loginBtn.disabled = true;
-  loginBtn.textContent = 'Signing in…';
-  try{
-    await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
-  }catch(err){
-    console.error(err);
-    loginError.textContent = 'Wrong email or password. Try again.';
-  }
-  loginBtn.disabled = false;
-  loginBtn.textContent = 'Sign in';
+<script>
+/* If this page is running outside Claude's artifact viewer (e.g. hosted on
+   GitHub Pages, or opened as a plain local file), window.storage won't
+   exist. This fallback gives it the same get/set/delete/list interface,
+   backed by the browser's own localStorage, so entries still save. */
+if(!window.storage){
+  window.storage = {
+    async get(key){
+      const v = localStorage.getItem(key);
+      if(v===null) throw new Error('Key not found: ' + key);
+      return {key, value:v, shared:false};
+    },
+    async set(key, value){
+      localStorage.setItem(key, value);
+      return {key, value, shared:false};
+    },
+    async delete(key){
+      localStorage.removeItem(key);
+      return {key, deleted:true, shared:false};
+    },
+    async list(prefix){
+      const keys = Object.keys(localStorage).filter(k => !prefix || k.startsWith(prefix));
+      return {keys, prefix, shared:false};
+    }
+  };
 }
-loginBtn.addEventListener('click', doLogin);
-loginPassword.addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
-signOutBtn.addEventListener('click', ()=> signOut(auth));
-
-onAuthStateChanged(auth, (user)=>{
-  if(user){
-    loginScreen.style.display = 'none';
-    appWrap.style.display = 'block';
-    loginEmail.value = '';
-    loginPassword.value = '';
-    loadAllEntries();
-  } else {
-    loginScreen.style.display = 'flex';
-    appWrap.style.display = 'none';
-  }
-});
-
-function showBanner(msg, type){
-  const b = document.getElementById('connBanner');
-  b.textContent = msg;
-  b.className = 'conn-banner show ' + type;
-}
-function hideBanner(){
-  const b = document.getElementById('connBanner');
-  b.className = 'conn-banner';
-}
-
-async function dbSaveEntry(entry){
-  await setDoc(doc(entriesCol, entry.id), entry);
-}
-async function dbDeleteEntry(id){
-  await deleteDoc(doc(entriesCol, id));
-}
-async function dbLoadAllEntries(){
-  const snap = await getDocs(entriesCol);
-  return snap.docs.map(d => d.data());
-}
-
-/* =========================================================
-   APP LOGIC (same journal UI, now backed by Firestore)
-   ========================================================= */
 
 /* ---------- painted stargazer-lily logo mark ---------- */
 function lilyLogoSVG(){
@@ -383,18 +287,41 @@ const MOODS = [
 ];
 function moodOf(id){ return MOODS.find(m=>m.id===id) || null; }
 
-/* subtle single-line botanical sprig, tone-on-tone per swatch */
+/* full stargazer-lily bloom, tone-on-tone with the postcard's mood colour,
+   echoing the reference photo: six splayed recurved petals, a radiating
+   throat, and curved stamens with anthers */
 function sprigSVG(m){
-  return `<svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M70 118 C68 90 64 60 50 30" stroke="${m.sprig}" stroke-width="2" stroke-linecap="round"/>
-    <path d="M58 90 C66 84 74 82 82 84" stroke="${m.sprig}" stroke-width="1.6" stroke-linecap="round"/>
-    <path d="M52 70 C42 64 34 63 26 66" stroke="${m.sprig}" stroke-width="1.6" stroke-linecap="round"/>
-    <path d="M56 48 C64 42 72 40 80 42" stroke="${m.sprig}" stroke-width="1.6" stroke-linecap="round"/>
-    <path d="M50 30 C46 22 40 16 32 12" stroke="${m.sprig}" stroke-width="1.6" stroke-linecap="round"/>
-    <ellipse cx="82" cy="84" rx="9" ry="5" fill="none" stroke="${m.sprig}" stroke-width="1.5" transform="rotate(-18 82 84)"/>
-    <ellipse cx="26" cy="66" rx="9" ry="5" fill="none" stroke="${m.sprig}" stroke-width="1.5" transform="rotate(18 26 66)"/>
-    <ellipse cx="80" cy="42" rx="8" ry="4.5" fill="none" stroke="${m.sprig}" stroke-width="1.5" transform="rotate(-22 80 42)"/>
-    <ellipse cx="32" cy="12" rx="7" ry="4" fill="none" stroke="${m.sprig}" stroke-width="1.5" transform="rotate(24 32 12)"/>
+  const petalFill = 'rgba(255,255,255,0.16)';
+  const vein = m.sprig;
+  const petalAngles = [-70,-32,4,42,80,118];
+  let petals = '';
+  petalAngles.forEach((ang,i)=>{
+    const len = 46 + (i%2===0? 4:0);
+    petals += `<g transform="rotate(${ang} 55 68)">
+      <path d="M55,68 C40,54 34,26 55,${68-len} C76,26 70,54 55,68 Z" fill="${petalFill}" stroke="${vein}" stroke-width="0.9" opacity=".9"/>
+      <path d="M55,68 C52,52 52,32 55,${68-len+10}" stroke="${vein}" stroke-width="0.7" opacity=".55" fill="none"/>
+      <path d="M50,50 C48,40 49,30 51,22" stroke="${vein}" stroke-width="0.4" opacity=".4" fill="none"/>
+      <path d="M60,50 C62,40 61,30 59,22" stroke="${vein}" stroke-width="0.4" opacity=".4" fill="none"/>
+    </g>`;
+  });
+  let stamens = '';
+  [-46,-20,4,26,50].forEach((ang,i)=>{
+    const len = 30 + (i%2)*5;
+    stamens += `<g transform="rotate(${ang} 55 68)">
+      <path d="M55,68 C55,${68-len*0.5} 53,${68-len*0.85} 51,${68-len}" stroke="${vein}" stroke-width="1" fill="none" opacity=".75"/>
+      <ellipse cx="51" cy="${68-len}" rx="2.6" ry="1.6" fill="${vein}" opacity=".85" transform="rotate(${ang*0.6} 51 ${68-len})"/>
+    </g>`;
+  });
+  const rays = Array.from({length:10}).map((_,i)=>{
+    const a = (i*36)*Math.PI/180;
+    const x2 = 55+16*Math.cos(a), y2 = 68+16*Math.sin(a);
+    return `<line x1="55" y1="68" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${vein}" stroke-width="0.6" opacity=".3"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 110 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+    ${petals}
+    ${rays}
+    ${stamens}
+    <circle cx="55" cy="68" r="2.2" fill="${vein}" opacity=".9"/>
   </svg>`;
 }
 
@@ -402,6 +329,7 @@ function sprigSVG(m){
 let entries = [];
 let currentId = null;
 let selectedMood = null;
+let selectedImage = null; // dataURL string or null
 
 const el = id => document.getElementById(id);
 const gridEl = el('grid');
@@ -416,11 +344,55 @@ const wordCount = el('wordCount');
 const saveStatus = el('saveStatus');
 const deleteBtn = el('deleteBtn');
 const moodSwatches = el('moodSwatches');
+const imageInput = el('imageInput');
+const chooseImageBtn = el('chooseImageBtn');
+const removeImageBtn = el('removeImageBtn');
+const coverPreviewWrap = el('coverPreviewWrap');
+const coverPreviewImg = el('coverPreviewImg');
+const coverHint = el('coverHint');
 
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function fmtDateShort(d){
   const dt = new Date(d+'T00:00:00');
   return dt.toLocaleDateString(undefined,{month:'short', day:'numeric', year:'numeric'});
+}
+
+/* Shrinks & compresses an uploaded photo to a reasonable size before it's
+   stored, so entries with photos stay well under storage limits. */
+function compressImage(file, maxDim=900, quality=0.82){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not load image'));
+      img.onload = () => {
+        let {width, height} = img;
+        if(width > height && width > maxDim){ height = Math.round(height*maxDim/width); width = maxDim; }
+        else if(height > maxDim){ width = Math.round(width*maxDim/height); height = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderCoverPreview(){
+  if(selectedImage){
+    coverPreviewWrap.style.display = 'block';
+    coverPreviewImg.src = selectedImage;
+    removeImageBtn.style.display = 'inline-block';
+    coverHint.textContent = 'This photo will cover the postcard, with a thin band of your mood colour.';
+  } else {
+    coverPreviewWrap.style.display = 'none';
+    coverPreviewImg.src = '';
+    removeImageBtn.style.display = 'none';
+    coverHint.textContent = 'No photo — the postcard will show a mood-toned illustration instead.';
+  }
 }
 
 /* ---------- grid rendering ---------- */
@@ -446,6 +418,18 @@ function renderGrid(filter=''){
   } else {
     html += filtered.map(e=>{
       const m = moodOf(e.mood) || MOODS[2];
+      if(e.image){
+        return `
+        <div class="postcard" data-id="${e.id}">
+          <div class="swatch has-image">
+            <div class="cover-photo" style="background-image:url('${e.image}');"></div>
+            <div class="cover-band" style="background:${m.bg};color:${m.ink};">
+              <div class="swatch-title">${e.title ? escapeHtml(e.title) : 'Untitled page'}</div>
+              <div class="swatch-code">${fmtDateShort(e.date)} · ${m.label.toUpperCase()}</div>
+            </div>
+          </div>
+        </div>`;
+      }
       return `
       <div class="postcard" data-id="${e.id}">
         <div class="swatch" style="background:${m.bg};color:${m.ink};">
@@ -499,6 +483,7 @@ function openEntry(id){
     entryText.value = e.text || '';
     dateInput.value = e.date;
     selectedMood = e.mood || null;
+    selectedImage = e.image || null;
     deleteBtn.style.display = 'inline-block';
   } else {
     currentId = null;
@@ -506,9 +491,11 @@ function openEntry(id){
     entryText.value = '';
     dateInput.value = todayStr();
     selectedMood = null;
+    selectedImage = null;
     deleteBtn.style.display = 'none';
   }
   renderMoodSwatches();
+  renderCoverPreview();
   updateWordCount();
   gridView.style.display = 'none';
   gridToolbar.style.display = 'none';
@@ -536,6 +523,7 @@ async function saveEntry(){
     title: titleInput.value,
     text: entryText.value,
     mood: selectedMood,
+    image: selectedImage || null,
     updated: new Date().toISOString()
   };
   const idx = entries.findIndex(x=>x.id===id);
@@ -543,16 +531,13 @@ async function saveEntry(){
   currentId = id;
 
   try{
-    await dbSaveEntry(entry);
-    hideBanner();
-    saveStatus.textContent = '✓ Saved';
+    await window.storage.set(id, JSON.stringify(entry));
     saveStatus.classList.add('show');
     setTimeout(()=> saveStatus.classList.remove('show'), 1800);
   }catch(err){
     console.error('Save failed', err);
-    saveStatus.textContent = '⚠ could not save';
+    saveStatus.textContent = '⚠ could not save (try a smaller photo?)';
     saveStatus.classList.add('show');
-    showBanner('Could not reach the cloud database. Check your internet connection or Firestore rules.', 'error');
   }
   deleteBtn.style.display = 'inline-block';
 }
@@ -560,7 +545,7 @@ async function saveEntry(){
 async function deleteEntry(){
   if(!currentId) return;
   if(!confirm('Delete this postcard? This cannot be undone.')) return;
-  try{ await dbDeleteEntry(currentId); }catch(err){ console.error('Delete failed', err); }
+  try{ await window.storage.delete(currentId); }catch(err){ console.error('Delete failed', err); }
   entries = entries.filter(x=>x.id!==currentId);
   closeDetail();
 }
@@ -568,12 +553,19 @@ async function deleteEntry(){
 async function loadAllEntries(){
   gridEl.innerHTML = `<div class="empty-state">Gathering your postcards…</div>`;
   try{
-    entries = await dbLoadAllEntries();
-    hideBanner();
+    const listResult = await window.storage.list('entry_');
+    const keys = (listResult && listResult.keys) || [];
+    const loaded = [];
+    for(const k of keys){
+      try{
+        const res = await window.storage.get(k);
+        if(res && res.value) loaded.push(JSON.parse(res.value));
+      }catch(e){ /* skip */ }
+    }
+    entries = loaded;
   }catch(err){
-    console.error('Could not load entries', err);
+    console.error('Could not list entries', err);
     entries = [];
-    showBanner('Could not reach the cloud database. Check your internet connection or Firestore rules.', 'error');
   }
   renderGrid();
 }
@@ -585,6 +577,26 @@ el('saveBtn').addEventListener('click', saveEntry);
 el('deleteBtn').addEventListener('click', deleteEntry);
 entryText.addEventListener('input', updateWordCount);
 searchBox.addEventListener('input', ()=> renderGrid(searchBox.value));
+
+chooseImageBtn.addEventListener('click', ()=> imageInput.click());
+removeImageBtn.addEventListener('click', ()=>{
+  selectedImage = null;
+  imageInput.value = '';
+  renderCoverPreview();
+});
+imageInput.addEventListener('change', async ()=>{
+  const file = imageInput.files && imageInput.files[0];
+  if(!file) return;
+  coverHint.textContent = 'Preparing photo…';
+  try{
+    selectedImage = await compressImage(file);
+    renderCoverPreview();
+  }catch(err){
+    console.error('Image processing failed', err);
+    coverHint.textContent = "⚠ Couldn't read that photo — try a different file.";
+  }
+  imageInput.value = '';
+});
 
 loadAllEntries();
 </script>
