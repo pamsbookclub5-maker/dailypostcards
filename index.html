@@ -6,6 +6,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCtkflM8x5bZpVRXEEoMqFYcJQLlqK2OHE",
+  authDomain: "final-daily-postcards.firebaseapp.com",
+  projectId: "final-daily-postcards",
+  storageBucket: "final-daily-postcards.firebasestorage.app",
+  messagingSenderId: "590832632285",
+  appId: "1:590832632285:web:c36af51a526d5927be3634"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+let currentUser = null;
+</script>
 <style>
   :root{
     --forest:#3c4f2e;
@@ -192,10 +211,44 @@
   .lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 20px 50px rgba(0,0,0,.5);}
   .lightbox-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;
     font-size:2rem;line-height:1;cursor:pointer;}
+
+  /* ---------- AUTH SCREEN ---------- */
+  .auth-screen{position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;
+    padding:20px;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 0%, rgba(184,190,124,.35), transparent 60%),
+      radial-gradient(ellipse 55% 45% at 100% 20%, rgba(60,79,46,.4), transparent 60%),
+      var(--forest-dark);
+  }
+  .auth-card{background:var(--paper);border-radius:18px;padding:34px 30px;width:100%;max-width:340px;
+    box-shadow:0 24px 50px rgba(0,0,0,.4);text-align:center;}
+  .auth-title{font-family:'Fraunces',serif;font-weight:500;font-style:italic;font-size:1.5rem;
+    color:var(--forest);margin:4px 0 6px;}
+  .auth-sub{font-size:.8rem;color:var(--ink-soft);margin:0 0 18px;line-height:1.4;}
+  .auth-card input{width:100%;padding:11px 13px;margin-bottom:10px;border-radius:8px;border:1px solid var(--line);
+    font-family:'Karla',sans-serif;font-size:.9rem;outline:none;background:#fff;}
+  .auth-card input:focus{border-color:var(--forest);}
+  .auth-error{font-size:.76rem;color:#b0463a;margin-top:8px;min-height:1em;line-height:1.4;}
+  .user-badge{font-size:.72rem;color:#cdd3b8;}
+  .import-link{font-size:.72rem;color:#cdd3b8;text-decoration:underline;cursor:pointer;background:none;border:none;padding:0;}
+  .import-link:hover{color:var(--paper);}
 </style>
 </head>
 <body>
-<div class="app">
+
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <svg viewBox="0 0 100 100" style="width:52px;height:52px;margin:0 auto 8px;display:block;"><g id="lilyLogoAuth"></g></svg>
+    <h2 class="auth-title">Daily Postcards</h2>
+    <p class="auth-sub">Enter your own email and password — first time sets it up, every time after just unlocks it.</p>
+    <input type="email" id="authEmail" placeholder="Email" autocomplete="email">
+    <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">
+    <button class="btn" id="authSubmitBtn" style="width:100%;margin-top:4px;">Continue</button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
+<div class="app" id="appRoot" style="display:none;">
 
   <header>
     <div class="brand-wrap">
@@ -210,6 +263,12 @@
       <button class="btn" id="newEntryBtn">+ Write one</button>
     </div>
   </header>
+
+  <div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;margin:-14px 0 22px;flex-wrap:wrap;">
+    <span class="user-badge" id="userBadge"></span>
+    <button type="button" class="import-link" id="importLink" style="display:none;">Import entries saved on this device</button>
+    <button type="button" class="import-link" id="signOutBtn">Sign out</button>
+  </div>
 
   <!-- GRID VIEW -->
   <div id="gridView">
@@ -274,31 +333,30 @@
 </div>
 
 <script>
-/* If this page is running outside Claude's artifact viewer (e.g. hosted on
-   GitHub Pages, or opened as a plain local file), window.storage won't
-   exist. This fallback gives it the same get/set/delete/list interface,
-   backed by the browser's own localStorage, so entries still save. */
-if(!window.storage){
-  window.storage = {
-    async get(key){
-      const v = localStorage.getItem(key);
-      if(v===null) throw new Error('Key not found: ' + key);
-      return {key, value:v, shared:false};
-    },
-    async set(key, value){
-      localStorage.setItem(key, value);
-      return {key, value, shared:false};
-    },
-    async delete(key){
-      localStorage.removeItem(key);
-      return {key, deleted:true, shared:false};
-    },
-    async list(prefix){
-      const keys = Object.keys(localStorage).filter(k => !prefix || k.startsWith(prefix));
-      return {keys, prefix, shared:false};
-    }
-  };
-}
+/* Every entry is stored as a Firestore document at
+   users/{uid}/entries/{entryId}, holding one field ("value") containing
+   the entry's JSON — so the rest of the app, which already speaks in
+   terms of get/set/delete/list, doesn't need to change. */
+window.storage = {
+  async get(key){
+    const doc = await db.collection('users').doc(currentUser.uid).collection('entries').doc(key).get();
+    if(!doc.exists) throw new Error('Key not found: ' + key);
+    return {key, value: doc.data().value, shared:false};
+  },
+  async set(key, value){
+    await db.collection('users').doc(currentUser.uid).collection('entries').doc(key).set({value});
+    return {key, value, shared:false};
+  },
+  async delete(key){
+    await db.collection('users').doc(currentUser.uid).collection('entries').doc(key).delete();
+    return {key, deleted:true, shared:false};
+  },
+  async list(prefix){
+    const snap = await db.collection('users').doc(currentUser.uid).collection('entries').get();
+    const keys = snap.docs.map(d => d.id).filter(k => !prefix || k.startsWith(prefix));
+    return {keys, prefix, shared:false};
+  }
+};
 
 /* ---------- painted stargazer-lily logo mark ---------- */
 function lilyLogoSVG(){
@@ -328,6 +386,7 @@ function lilyLogoSVG(){
   return `${petals}${stamens}<circle cx="50" cy="54" r="2" fill="${stem}"/>`;
 }
 document.getElementById('lilyLogo').innerHTML = lilyLogoSVG();
+document.getElementById('lilyLogoAuth').innerHTML = lilyLogoSVG();
 
 /* ---------- mood palette ---------- */
 const MOODS = [
@@ -424,8 +483,10 @@ function stripTags(html){
   return d.textContent || '';
 }
 
-/* Shrinks & compresses an uploaded photo before it's stored, so entries
-   with several photos stay well under storage limits. */
+/* Shrinks & compresses an uploaded photo, returning a Blob ready to
+   upload to Firebase Storage — keeping Firestore documents small, since
+   Firestore caps each document at 1MB and photos would blow past that
+   if stored as text inside the entry itself. */
 function compressImage(file, maxDim=1000, quality=0.8){
   return new Promise((resolve, reject)=>{
     const reader = new FileReader();
@@ -440,12 +501,29 @@ function compressImage(file, maxDim=1000, quality=0.8){
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not create image')), 'image/jpeg', quality);
       };
       img.src = reader.result;
     };
     reader.readAsDataURL(file);
   });
+}
+
+/* Uploads a compressed photo to Firebase Storage under this user's own
+   folder, and returns its permanent download URL plus its storage path
+   (the path is kept so the file can be deleted later if removed). */
+async function uploadPhoto(blob, imgId){
+  const path = `users/${currentUser.uid}/photos/${imgId}.jpg`;
+  const ref = storage.ref().child(path);
+  await ref.put(blob, {contentType:'image/jpeg'});
+  const url = await ref.getDownloadURL();
+  return {url, path};
+}
+
+async function deletePhotoFromStorage(path){
+  if(!path) return;
+  try{ await storage.ref().child(path).delete(); }
+  catch(e){ console.warn('Could not delete stored photo (it may already be gone)', e); }
 }
 
 /* ---------- lightbox ---------- */
@@ -501,6 +579,7 @@ function deletePhoto(id){
   if(!id) return;
   if(!confirm('Remove this photo? This cannot be undone.')) return;
 
+  const rec = currentImages.find(im => im.id === id);
   const imgEl = entryText.querySelector(`img[data-img-id="${id}"]`);
   if(imgEl){
     const item = imgEl.closest('.img-item');
@@ -516,6 +595,7 @@ function deletePhoto(id){
   if(selectedCoverId === id) selectedCoverId = null;
   renderCoverPicker();
   updateWordCount();
+  if(rec && rec.path) deletePhotoFromStorage(rec.path);
 }
 
 insertPhotosBtn.addEventListener('click', ()=>{
@@ -527,15 +607,17 @@ insertImagesInput.addEventListener('change', async ()=>{
   const files = Array.from(insertImagesInput.files || []);
   if(!files.length) return;
   insertPhotosBtn.disabled = true;
-  insertPhotosBtn.textContent = 'Adding photos…';
+  insertPhotosBtn.textContent = 'Uploading photos…';
   const newImgs = [];
   for(const file of files){
     try{
-      const src = await compressImage(file);
       const id = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-      newImgs.push({id, src});
-      currentImages.push({id, src});
-    }catch(err){ console.error('Could not process a photo', err); }
+      const blob = await compressImage(file);
+      const {url, path} = await uploadPhoto(blob, id);
+      const rec = {id, src:url, path};
+      newImgs.push(rec);
+      currentImages.push(rec);
+    }catch(err){ console.error('Could not process/upload a photo', err); }
   }
   if(newImgs.length){
     const cols = Math.min(newImgs.length, 3);
@@ -546,6 +628,9 @@ insertImagesInput.addEventListener('change', async ()=>{
     restoreSelection();
     document.execCommand('insertHTML', false, gridHtml);
     savedRange = null;
+  }
+  if(newImgs.length < files.length){
+    alert(`${files.length - newImgs.length} photo(s) couldn't be uploaded — check your connection and try again.`);
   }
   insertImagesInput.value = '';
   insertPhotosBtn.disabled = false;
@@ -826,7 +911,82 @@ el('saveBtn').addEventListener('click', saveEntry);
 el('deleteBtn').addEventListener('click', deleteEntry);
 searchBox.addEventListener('input', ()=> renderGrid(searchBox.value));
 
-loadAllEntries();
+/* ---------- authentication ---------- */
+/* One email + password, no separate "create account" step: the first
+   time it's used it quietly creates the account, every time after that
+   it just signs in — since this is a single-person diary, not a
+   multi-user product. */
+function friendlyAuthError(err){
+  const code = (err && err.code) || '';
+  if(code.includes('wrong-password') || code.includes('invalid-credential')) return 'Incorrect password for that email.';
+  if(code.includes('weak-password')) return 'Please use a password of at least 6 characters.';
+  if(code.includes('invalid-email')) return "That email address doesn't look right.";
+  if(code.includes('too-many-requests')) return 'Too many attempts — please wait a moment and try again.';
+  return 'Something went wrong. Please try again.';
+}
+
+el('authSubmitBtn').addEventListener('click', async ()=>{
+  const email = el('authEmail').value.trim();
+  const password = el('authPassword').value;
+  const errEl = el('authError');
+  errEl.textContent = '';
+  if(!email || !password){ errEl.textContent = 'Enter both an email and a password.'; return; }
+  el('authSubmitBtn').disabled = true;
+  try{
+    try{
+      await auth.signInWithEmailAndPassword(email, password);
+    }catch(err){
+      if(err && err.code === 'auth/user-not-found'){
+        await auth.createUserWithEmailAndPassword(email, password);
+      } else {
+        throw err;
+      }
+    }
+  }catch(err){
+    console.error('Auth error', err);
+    errEl.textContent = friendlyAuthError(err);
+  }
+  el('authSubmitBtn').disabled = false;
+});
+
+el('signOutBtn').addEventListener('click', ()=> auth.signOut());
+
+/* Lets someone copy entries that were saved in this browser (from before
+   this device was connected to an account) into their signed-in account. */
+async function importLocalEntries(){
+  const localKeys = Object.keys(localStorage).filter(k => k.startsWith('entry_'));
+  if(localKeys.length === 0){ alert('No entries found saved on this device.'); return; }
+  if(!confirm(`Import ${localKeys.length} entr${localKeys.length===1?'y':'ies'} saved on this device into your account?`)) return;
+  let success = 0;
+  for(const k of localKeys){
+    try{
+      const raw = localStorage.getItem(k);
+      await db.collection('users').doc(currentUser.uid).collection('entries').doc(k).set({value: raw});
+      success++;
+    }catch(e){ console.error('Import failed for', k, e); }
+  }
+  alert(`Imported ${success} of ${localKeys.length} entries.` + (success < localKeys.length ? ' Some may have had photos too large to import automatically.' : ''));
+  loadAllEntries();
+}
+el('importLink').addEventListener('click', importLocalEntries);
+
+auth.onAuthStateChanged(user=>{
+  currentUser = user;
+  if(user){
+    el('authScreen').style.display = 'none';
+    el('appRoot').style.display = 'block';
+    el('userBadge').textContent = user.email;
+    const hasLocalEntries = Object.keys(localStorage).some(k => k.startsWith('entry_'));
+    el('importLink').style.display = hasLocalEntries ? 'inline' : 'none';
+    loadAllEntries();
+  } else {
+    el('authScreen').style.display = 'flex';
+    el('appRoot').style.display = 'none';
+    entries = [];
+    currentId = null;
+  }
+});
+
 </script>
 </body>
 </html>
